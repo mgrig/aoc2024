@@ -22,13 +22,16 @@ end
 function cLenient = countSafeLenient(mat)
   [cLenient, mask] = countSafe(mat);
 
-  mat = mat(mask == 0, :);
+  mat = mat(mask == 0, :); % keep only unsafe rows
+
+  % Remove each column individually, count safe rows, and continue ONLY with the remaining unsafe rows
   for i = 1:size(mat,2)
     mat_small = mat;
-    mat_small(:, i) = []; % removes column i
+    mat_small(:, i) = []; % remove column i from a copy of mat
 
     [c, mask] = countSafe(mat_small);
     cLenient = cLenient + c;
-    mat = mat(mask == 0, :);
+
+    mat = mat(mask == 0, :); % keep only remaining unsafe rows
   end
 end
