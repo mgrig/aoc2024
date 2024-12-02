@@ -1,7 +1,7 @@
 ##part 1
 mat = load('../resources/01.txt');
 mat = sort(mat);
-sum(abs(mat(:, 1) - mat(:, 2)))
+sum(abs(diff(mat, 1, 2)))
 
 ##part 2
 [uniques, ~, idx] = unique(mat(:,2));
@@ -17,4 +17,5 @@ for i = 1:length(mat(:,1))
   endif
 end
 
+format long g
 dot(mat(:,1), counts_for_list1)
