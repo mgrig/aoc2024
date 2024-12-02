@@ -1,0 +1,4 @@
+As the input file has rows with different number of elements, for ease of processing, we split the input file into multiple files, where each output file has the same number of elements.
+This makes it easy to process each new file as a matrix in matlab/octave and use matrix operations.
+
+awk '{count = gsub(/ /, " "); print > ("02_count_" count ".txt")}' 02.txt
