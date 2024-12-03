@@ -6,8 +6,7 @@ sum(abs(diff(mat, 1, 2)))
 ##part 2
 [uniques, ~, idx] = unique(mat(:,2));
 counts = accumarray(idx(:), 1);
-h = [uniques, counts];
-elementMap = containers.Map(h(:,1), h(:,2));
+elementMap = containers.Map(uniques, counts);
 
 counts_for_list1 = zeros(size(mat,1), 1);
 for i = 1:length(mat(:,1))
