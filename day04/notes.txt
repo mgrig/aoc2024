@@ -1,4 +1,9 @@
 Part 1
 Main idea is to "rotate" the input file 90 and 45 degrees and then count occurences of XMAS by grep + wc.
-The rotate script was generated with AI in go. Outputs of the rotated files are also saved.
+The rotate script (rotate.go) was generated with AI, with slight manual modifications in main. Outputs of the rotated files are also saved.
 Counting done with: grep -o 'XMAS' *.txt | wc -l
+
+Part 2
+Modify the main function to solve only part 2.
+Iterate between rows and columns (1 <= pos <= n-1) where the middle of an X-MAS could be (aka where an 'A' could be)
+and where an 'A' is present check the neighboring "corners" for a matching combo of M-s and S-s.

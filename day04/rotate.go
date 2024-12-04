@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // rotateMatrix90 rotates a 2D rune slice by 90 degrees clockwise
@@ -185,40 +184,64 @@ func main() {
 	}
 
 	// Read the input matrix
-	matrix, _, err := readMatrix(inputFile)
+	matrix, nrCols, err := readMatrix(inputFile)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	// Determine the base name and extension
-	baseName := filepath.Base(inputFile)
-	dirName := filepath.Dir(inputFile)
-	ext := filepath.Ext(baseName)
-	nameOnly := strings.TrimSuffix(baseName, ext)
+	sum := 0
+	for r := 1; r < nrCols-1; r++ {
+		for c := 1; c < nrCols-1; c++ {
+			val := matrix[r][c]
+			if val != 'A' {
+				continue
+			}
 
-	// Initialize current matrix as the original matrix
-	currentMatrix := matrix
+			upperLeft := matrix[r-1][c-1]
+			upperRight := matrix[r-1][c+1]
+			bottomLeft := matrix[r+1][c-1]
+			bottomRight := matrix[r+1][c+1]
 
-	rotated45 := rotateMatrix45(currentMatrix)
-	WriteToFile(rotated45, dirName, nameOnly, "45", ext)
+			if (upperLeft == 'M' && upperRight == 'M' && bottomLeft == 'S' && bottomRight == 'S') ||
+				(upperLeft == 'M' && upperRight == 'S' && bottomLeft == 'M' && bottomRight == 'S') ||
+				(upperLeft == 'S' && upperRight == 'S' && bottomLeft == 'M' && bottomRight == 'M') ||
+				(upperLeft == 'S' && upperRight == 'M' && bottomLeft == 'S' && bottomRight == 'M') {
+				sum += 1
+			}
+		}
+	}
+	fmt.Println(sum)
 
-	rotated90 := rotateMatrix90(currentMatrix)
-	WriteToFile(rotated90, dirName, nameOnly, "90", ext)
+	// // Determine the base name and extension
+	// baseName := filepath.Base(inputFile)
+	// dirName := filepath.Dir(inputFile)
+	// ext := filepath.Ext(baseName)
+	// nameOnly := strings.TrimSuffix(baseName, ext)
 
-	rotated45 = rotateMatrix45(rotated90)
-	WriteToFile(rotated45, dirName, nameOnly, "135", ext)
+	// PART 1
+	// // Initialize current matrix as the original matrix
+	// currentMatrix := matrix
 
-	rotated90 = rotateMatrix90(rotated90)
-	WriteToFile(rotated90, dirName, nameOnly, "180", ext)
+	// rotated45 := rotateMatrix45(currentMatrix)
+	// WriteToFile(rotated45, dirName, nameOnly, "45", ext)
 
-	rotated45 = rotateMatrix45(rotated90)
-	WriteToFile(rotated45, dirName, nameOnly, "225", ext)
+	// rotated90 := rotateMatrix90(currentMatrix)
+	// WriteToFile(rotated90, dirName, nameOnly, "90", ext)
 
-	rotated90 = rotateMatrix90(rotated90)
-	WriteToFile(rotated90, dirName, nameOnly, "270", ext)
+	// rotated45 = rotateMatrix45(rotated90)
+	// WriteToFile(rotated45, dirName, nameOnly, "135", ext)
 
-	rotated45 = rotateMatrix45(rotated90)
-	WriteToFile(rotated45, dirName, nameOnly, "315", ext)
+	// rotated90 = rotateMatrix90(rotated90)
+	// WriteToFile(rotated90, dirName, nameOnly, "180", ext)
+
+	// rotated45 = rotateMatrix45(rotated90)
+	// WriteToFile(rotated45, dirName, nameOnly, "225", ext)
+
+	// rotated90 = rotateMatrix90(rotated90)
+	// WriteToFile(rotated90, dirName, nameOnly, "270", ext)
+
+	// rotated45 = rotateMatrix45(rotated90)
+	// WriteToFile(rotated45, dirName, nameOnly, "315", ext)
 
 }
