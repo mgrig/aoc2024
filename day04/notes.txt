@@ -1,0 +1,4 @@
+Part 1
+Main idea is to "rotate" the input file 90 and 45 degrees and then count occurences of XMAS by grep + wc.
+The rotate script was generated with AI in go. Outputs of the rotated files are also saved.
+Counting done with: grep -o 'XMAS' *.txt | wc -l
