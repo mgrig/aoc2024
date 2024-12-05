@@ -1,11 +1,21 @@
+%{
+See the rules as an edge in a directed graph.
+So 'A|B' means "page A must come before page B" and translates to a A -> B directed edge.
+
+Use the Floyd-Warshall algorithm to calculate the shortest path lengths between
+every pair of vertices in the graph.
+
+The rest is just about evaluating the result of the computed FW matrix.
+
+The needed helper functions were written with AI, so beware "there be dragons in there",
+but they seem to do the right thing... after enough iterations.
+%}
 function day05
   dist = load_directed_graph('05_rules.txt', 99);
-
-  for k = 1:size(dist,1)
-      dist(k, k) = 0;
-  endfor
+  dist(1:size(dist,1)+1:end) = 0; # set main diagonal to 0
 
   updates = load_comma_separated_struct_array('05_updates.txt');
+
   sum1 = 0;
   sum2 = 0;
   for r = 1:length(updates)
@@ -24,22 +34,20 @@ function day05
 
     for c = 1:length(line)-1
      d = dist_copy(line(c), line(c+1));
-##     fprintf("%d -(%d)-> ", line(c), d);
-     if isinf(d) # || d == 0
+     if isinf(d)
         right_order = false;
         break
       endif
     endfor
-##    fprintf("%d\n", line(c+1))
 
     if right_order
       mid_value = line((1+length(line))/2);
-##      fprintf("%d %d\n", r, mid_value);
       sum1 = sum1 + mid_value;
     else
 ##      sort the line
       cmp_func = @(x, y) ( 2 * isinf(dist_copy(x, y)) - 1 );
       sorted_line = custom_sort_unique(line, cmp_func);
+
       mid_value = sorted_line((1+length(sorted_line))/2);
       sum2 = sum2 + mid_value;
     endif
@@ -164,7 +172,7 @@ function matrix_struct = load_comma_separated_struct_array(filename)
             continue;
         endif
 
-        % Optionally, skip comment lines (starting with #)
+        % Optionally, skip comment lines (starting with #)Floyd-Warshall algorithm to calculate the shortest path lengths between every pair of vertices in a graph
         if startsWith(line, '#')
             continue;
         endif
