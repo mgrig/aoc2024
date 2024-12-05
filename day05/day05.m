@@ -6,7 +6,8 @@ function day05
   endfor
 
   updates = load_comma_separated_struct_array('05_updates.txt');
-  sum = 0;
+  sum1 = 0;
+  sum2 = 0;
   for r = 1:length(updates)
     line = updates(r).data;
     right_order = true;
@@ -34,11 +35,18 @@ function day05
     if right_order
       mid_value = line((1+length(line))/2);
 ##      fprintf("%d %d\n", r, mid_value);
-      sum = sum + mid_value;
+      sum1 = sum1 + mid_value;
+    else
+##      sort the line
+      cmp_func = @(x, y) ( 2 * isinf(dist_copy(x, y)) - 1 );
+      sorted_line = custom_sort_unique(line, cmp_func);
+      mid_value = sorted_line((1+length(sorted_line))/2);
+      sum2 = sum2 + mid_value;
     endif
   endfor
 
-  disp(sum)
+  fprintf("sum1 = %d\n", sum1)
+  fprintf("sum2 = %d\n", sum2)
 end
 
 function dist = compute_fw(dist)
@@ -189,4 +197,77 @@ function matrix_struct = load_comma_separated_struct_array(filename)
         warning('No data found in the file: %s.', filename);
     endif
 end
+function sorted = custom_sort_unique(A, cmp_func)
+    %CUSTOM_SORT_UNIQUE Sorts a row vector using a custom comparison function.
+    %   sorted = CUSTOM_SORT_UNIQUE(A, cmp_func) takes a 1D array A with unique
+    %   elements and a comparison function cmp_func, and returns a new row vector
+    %   sorted based on cmp_func.
+    %
+    %   Inputs:
+    %       A         - 1D array to be sorted. All elements must be unique.
+    %       cmp_func  - Function handle that takes two inputs and returns:
+    %                   - Negative if first < second
+    %                   - Positive if first > second
+    %
+    %   Output:
+    %       sorted    - Sorted row vector based on cmp_func.
+    %
+    %   Example:
+    %       % Comparator to sort numbers by absolute value
+    %       cmp_abs = @(x, y) abs(x) - abs(y);
+    %       sorted_array = custom_sort_unique([-3, 1, -2, 4, 0], cmp_abs);
+    %       % sorted_array = [0, 1, -2, -3, 4]
+
+    % Ensure A is a row vector
+    A = A(:).';
+
+    % Validate that A is a vector
+    if ~isvector(A)
+        error('Input A must be a 1D array.');
+    end
+
+    % Validate that all elements are unique
+    if length(unique(A)) != length(A)
+        error('All elements in input array A must be unique.');
+    end
+
+    % Base case: empty array or single element is already sorted
+    if isempty(A) || length(A) == 1
+        sorted = A;
+        return;
+    endif
+
+    % Choose the pivot (last element)
+    pivot = A(end);
+
+    % Initialize containers for partitions
+    less = [];
+    greater = [];
+
+    % Partition the array based on the comparison with pivot
+    for i = 1:length(A)-1  % Exclude the pivot itself
+        result = cmp_func(A(i), pivot);
+        if result < 0
+            less(end + 1) = A(i); %#ok<AGROW>
+        else
+            greater(end + 1) = A(i); %#ok<AGROW>
+        endif
+    endfor
+
+    % Recursively sort the partitions
+    if isempty(less)
+        sorted_less = [];
+    else
+        sorted_less = custom_sort_unique(less, cmp_func);
+    endif
+
+    if isempty(greater)
+        sorted_greater = [];
+    else
+        sorted_greater = custom_sort_unique(greater, cmp_func);
+    endif
+
+    % Concatenate the results: [sorted_less, pivot, sorted_greater]
+    sorted = [sorted_less, pivot, sorted_greater];
+endfunction
 
