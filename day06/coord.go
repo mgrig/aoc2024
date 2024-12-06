@@ -8,10 +8,6 @@ func NewCoord(r, c int) Coord {
 	return Coord{r: r, c: c}
 }
 
-func (coord Coord) Equals(r, c int) bool {
-	return coord.r == r && coord.c == c
-}
-
 func (coord Coord) GetCoordInDir(dir int) Coord {
 	switch dir {
 	case UP:
