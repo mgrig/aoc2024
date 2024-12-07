@@ -6,17 +6,21 @@ import (
 	"strings"
 )
 
-func Part1(lines []string) int {
+func Part12(lines []string) (int, int) {
 	operations, _ := parseLines(lines)
 
-	sum := 0
+	sum1 := 0
+	sum2 := 0
 	for _, operation := range operations {
 		if operation.CanBeMadeTrue() {
-			sum += operation.result
+			sum1 += operation.result
+			sum2 += operation.result
+		} else if operation.CanBeMadeTrue3() {
+			sum2 += operation.result
 		}
 	}
 
-	return sum
+	return sum1, sum2
 }
 
 // parseLines parses each line in the input slice and returns a slice of Rows.
