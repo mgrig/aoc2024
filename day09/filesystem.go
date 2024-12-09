@@ -103,6 +103,7 @@ func (fs *Filesystem) GetBlockByFileId(fileId int) (*Block, int) {
 
 func (fs *Filesystem) CompressFiles() {
 	// go backwards through files (same as blocks at the start)
+	// use fileId for search, to avoid moving the same block twice
 	for fileId := len(fs.blocks) - 1; fileId >= 0; fileId-- {
 		block, index := fs.GetBlockByFileId(fileId)
 
