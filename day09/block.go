@@ -2,6 +2,7 @@ package day09
 
 import "fmt"
 
+// Block models a contiguous range of unit-blocks, with the same fileId.
 type Block struct {
 	fileId int
 	from   int

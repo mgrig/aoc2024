@@ -7,6 +7,27 @@ import (
 
 func Part1(lines []string) int {
 
+	fs := ParseFilesystem(lines)
+
+	//fmt.Println(fs.PrettyPrint())
+	fs.Compress()
+	//fmt.Println(fs.PrettyPrint())
+
+	return fs.checksum()
+}
+
+func Part2(lines []string) int {
+
+	fs := ParseFilesystem(lines)
+
+	//fmt.Println(fs.PrettyPrint())
+	fs.CompressFiles()
+	//fmt.Println(fs.PrettyPrint())
+
+	return fs.checksum()
+}
+
+func ParseFilesystem(lines []string) *Filesystem {
 	fs := NewFilesystem()
 	nextIsBlock := true
 	nextBlockId := 0
@@ -27,10 +48,5 @@ func Part1(lines []string) int {
 			nextIsBlock = true
 		}
 	}
-
-	//fmt.Println(fs.PrettyPrint())
-	fs.Compress()
-	//fmt.Println(fs.PrettyPrint())
-
-	return fs.checksum()
+	return fs
 }

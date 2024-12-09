@@ -50,6 +50,14 @@ func (fs *Filesystem) insertBlockAtPosition(pos int, newBlock *Block) {
 	fs.blocks = append(fs.blocks[:pos], append([]*Block{newBlock}, fs.blocks[pos:]...)...)
 }
 
+func (fs *Filesystem) removeAt(pos int) {
+	if pos < 0 || pos >= len(fs.blocks) {
+		fmt.Println("Invalid position")
+		return
+	}
+	fs.blocks = append(fs.blocks[:pos], fs.blocks[pos+1:]...)
+}
+
 func (fs *Filesystem) isFree(from int, length int) bool {
 	freeBlock := NewBlock(-1, from, length)
 	for _, block := range fs.blocks {
@@ -84,6 +92,33 @@ func (fs *Filesystem) Compress() {
 	}
 }
 
+func (fs *Filesystem) GetBlockByFileId(fileId int) (*Block, int) {
+	for i, block := range fs.blocks {
+		if block.fileId == fileId {
+			return block, i
+		}
+	}
+	panic("block not found")
+}
+
+func (fs *Filesystem) CompressFiles() {
+	// go backwards through files (same as blocks at the start)
+	for fileId := len(fs.blocks) - 1; fileId >= 0; fileId-- {
+		block, index := fs.GetBlockByFileId(fileId)
+
+		// get first (left-most) gap of at least length block.length, left of the current block
+		firstGap, exists, indexBlockBeforeGap := fs.FirstGapLargerThanUntilPos(block.length, block.from)
+
+		if exists {
+			// remove old block
+			fs.removeAt(index)
+
+			// insert new block in gap
+			fs.insertBlockAtPosition(indexBlockBeforeGap+1, NewBlock(block.fileId, firstGap.from, block.length))
+		}
+	}
+}
+
 func (fs *Filesystem) FirstGap() (gap *Block, exists bool, indexBlockBeforeGap int) {
 	if len(fs.blocks) <= 1 {
 		return nil, false, -1
@@ -94,6 +129,26 @@ func (fs *Filesystem) FirstGap() (gap *Block, exists bool, indexBlockBeforeGap i
 	for i := 0; i < len(fs.blocks)-1; i++ {
 		distToNextBlock := fs.blocks[i+1].from - fs.blocks[i].To() - 1
 		if distToNextBlock > 0 {
+			return NewBlock(-1, fs.blocks[i].To()+1, distToNextBlock), true, i
+		}
+	}
+
+	return nil, false, -1
+}
+
+func (fs *Filesystem) FirstGapLargerThanUntilPos(minLength int, pos int) (gap *Block, exists bool, indexBlockBeforeGap int) {
+	if len(fs.blocks) <= 1 {
+		return nil, false, -1
+	}
+
+	// we know there is no gap at the start
+
+	for i := 0; i < len(fs.blocks)-1; i++ {
+		if fs.blocks[i].To() > pos {
+			break
+		}
+		distToNextBlock := fs.blocks[i+1].from - fs.blocks[i].To() - 1
+		if distToNextBlock >= minLength {
 			return NewBlock(-1, fs.blocks[i].To()+1, distToNextBlock), true, i
 		}
 	}
