@@ -30,9 +30,13 @@ func Part12(lines []string) (int, int) {
 		}
 	}
 
+	// part 1
+	// BFS: starting from all tops, climb down where possible.
+	// At each reached position append the set of tops reachable from that position.
+
 	reachableTops := make(map[Coord]map[Coord]struct{}) // coord -> set of reachable tops
 
-	// tops are reachable from the top :)
+	// init: tops are reachable from the top :)
 	for _, top := range tops {
 		reachableTops[top] = make(map[Coord]struct{})
 		reachableTops[top][top] = struct{}{}
@@ -51,6 +55,7 @@ func Part12(lines []string) (int, int) {
 			}
 
 			// path can continue
+			// merge set of reachable tops for nextPos
 			_, exists := reachableTops[nextPos]
 			if !exists {
 				reachableTops[nextPos] = make(map[Coord]struct{})
@@ -59,6 +64,7 @@ func Part12(lines []string) (int, int) {
 				reachableTops[nextPos][reachableTop] = struct{}{}
 			}
 
+			// ... and add nextPos for further processing
 			coordsToProcess = append(coordsToProcess, nextPos)
 		}
 	}
@@ -67,6 +73,10 @@ func Part12(lines []string) (int, int) {
 	for _, trailhead := range trailheads {
 		part1 += len(reachableTops[trailhead])
 	}
+
+	// part 2
+	// Also bfs, but for each reached position keep track fo the number of paths from the top the position was reached by.
+	// Eventually countWaysToTop[pos] will indicate the number of paths through which a top (any top) is reached starting from pos.
 
 	countWaysToTop := NewGrid(n)
 	coordsToProcess = tops
