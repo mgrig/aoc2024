@@ -41,6 +41,35 @@ func Part1(lines []string, nx, ny int) int {
 	return q1 * q2 * q3 * q4
 }
 
+func Part2(lines []string, nx, ny int) int {
+	reg := regexp.MustCompile(`p=(.+),(.+) v=(.+),(.+)`)
+
+	size := NewPoint(nx, ny)
+
+	n := 0
+	for true {
+		n++
+		g := NewGrid(nx, ny)
+		//fmt.Println(n)
+		for i := range lines {
+			matches := reg.FindStringSubmatch(lines[i])
+			px, py := common.StringToInt(matches[1]), common.StringToInt(matches[2])
+			vx, vy := common.StringToInt(matches[3]), common.StringToInt(matches[4])
+
+			end := propagate(NewPoint(px, py), NewPoint(vx, vy), size, n)
+
+			g.Increment(end)
+		}
+		if g.ContainsSegment(12) {
+			//fmt.Println(n)
+			//fmt.Println(g)
+			break
+		}
+	}
+
+	return n
+}
+
 func propagate(p, v, n Point, repeats int) (end Point) {
 	end.x = (p.x + repeats*v.x) % n.x
 	if end.x < 0 {
