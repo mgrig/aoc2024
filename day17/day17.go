@@ -9,32 +9,11 @@ import (
 )
 
 func Part1(lines []string) string {
-	regexA := regexp.MustCompile(`Register A: (\d+)`)
-	regexB := regexp.MustCompile(`Register B: (\d+)`)
-	regexC := regexp.MustCompile(`Register C: (\d+)`)
-	regexProg := regexp.MustCompile(`Program: (.*)`)
-
-	matches := regexA.FindStringSubmatch(lines[0])
-	regA := common.StringToInt(matches[1])
-
-	matches = regexB.FindStringSubmatch(lines[1])
-	regB := common.StringToInt(matches[1])
-
-	matches = regexC.FindStringSubmatch(lines[2])
-	regC := common.StringToInt(matches[1])
-
-	matches = regexProg.FindStringSubmatch(lines[4])
-	progStr := strings.Split(matches[1], ",")
-	prog := make([]int, len(progStr))
-	for i, str := range progStr {
-		prog[i] = common.StringToInt(str)
-	}
-
-	fmt.Println("regs:", regA, regB, regC)
-	fmt.Println("prog:", prog)
+	regA, regB, regC, prog := parseInput(lines)
+	//fmt.Println("regs:", regA, regB, regC)
+	//fmt.Println("prog:", prog)
 
 	output := runProgram(&regA, &regB, &regC, prog)
-	fmt.Println("output:", output)
 
 	ret := fmt.Sprintf("%d", output[0])
 	for i := 1; i < len(output); i++ {
@@ -42,6 +21,59 @@ func Part1(lines []string) string {
 	}
 
 	return ret
+}
+
+func Part2(lines []string) int {
+	_, _, _, prog := parseInput(lines)
+
+	a, _ := rec(prog, len(prog)-1, 0)
+
+	return a
+}
+
+func rec(prog []int, step int, remainingA int) (a int, found bool) {
+	targetOut := prog[step]
+	minA := remainingA * 8
+	maxA := minA + 7
+
+	//fmt.Printf("searching remainingA:%d, %d..%d targetOut:%d\n", remainingA, minA, maxA, targetOut)
+	solutions, found := solve(minA, maxA, targetOut)
+	//fmt.Println(solutions)
+
+	if found {
+		for _, solution := range solutions {
+			if step == 0 {
+				return solution, true
+			}
+			a, found = rec(prog, step-1, solution)
+			if found {
+				return a, found
+			}
+		}
+	}
+	return -1, false
+}
+
+func solve(minA, maxA int, targetOut int) (solutions []int, found bool) {
+	var b, c, out int
+	ret := make([]int, 0)
+	for a := minA; a <= maxA; a++ {
+
+		b = a % 8
+		b = b ^ 5
+		c = a >> b
+		b = b ^ 6
+		b = b ^ c
+		out = b % 8
+
+		if out == targetOut {
+			ret = append(ret, a)
+		}
+	}
+	if len(ret) > 0 {
+		return ret, true
+	}
+	return nil, false
 }
 
 func runProgram(regA, regB, regC *int, prog []int) (output []int) {
@@ -55,7 +87,9 @@ func runProgram(regA, regB, regC *int, prog []int) (output []int) {
 		}
 		opcode := prog[ip]
 
+		//fmt.Printf("%d, %d: ", opcode, prog[ip+1])
 		ip, pOut = processOp(opcode, regA, regB, regC, prog, ip)
+		//fmt.Printf("regA:%d, regB:%d, regC:%d\n", *regA, *regB, *regC)
 		if pOut != nil {
 			output = append(output, *pOut)
 		}
@@ -139,4 +173,29 @@ func readComboOperand(in int, regA, regB, regC int) (out int) {
 
 func int2Pow(power int) int {
 	return int(math.Pow(2.0, float64(power)))
+}
+
+func parseInput(lines []string) (regA, regB, regC int, prog []int) {
+	regexA := regexp.MustCompile(`Register A: (\d+)`)
+	regexB := regexp.MustCompile(`Register B: (\d+)`)
+	regexC := regexp.MustCompile(`Register C: (\d+)`)
+	regexProg := regexp.MustCompile(`Program: (.*)`)
+
+	matches := regexA.FindStringSubmatch(lines[0])
+	regA = common.StringToInt(matches[1])
+
+	matches = regexB.FindStringSubmatch(lines[1])
+	regB = common.StringToInt(matches[1])
+
+	matches = regexC.FindStringSubmatch(lines[2])
+	regC = common.StringToInt(matches[1])
+
+	matches = regexProg.FindStringSubmatch(lines[4])
+	progStr := strings.Split(matches[1], ",")
+	prog = make([]int, len(progStr))
+	for i, str := range progStr {
+		prog[i] = common.StringToInt(str)
+	}
+
+	return regA, regB, regC, prog
 }
