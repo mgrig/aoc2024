@@ -16,7 +16,7 @@ const (
 	LEFT  int = 3
 )
 
-func Part1(lines []string, n int, drops int) int {
+func Part12(lines []string, n int, drops int) (int, Coord) {
 	coords := make([]Coord, len(lines))
 	for i, line := range lines {
 		tokens := strings.Split(line, ",")
@@ -28,6 +28,30 @@ func Part1(lines []string, n int, drops int) int {
 		grid.SetValueAt(coords[i], OBSTACLE)
 	}
 	//fmt.Println(grid)
+
+	part1, cellsOnPath, _ := dijkstra(grid)
+
+	// part 2
+	// keep dropping obstacles one by one
+	var found bool
+	var blocker Coord
+	for step := drops; step < len(coords); step++ {
+		grid.SetValueAt(coords[step], OBSTACLE)
+		// iff current drop blocks the currently known path, search for a new path (full new search)
+		if _, exists := cellsOnPath[coords[step]]; exists {
+			_, cellsOnPath, found = dijkstra(grid)
+			if !found {
+				// current step leads to no path
+				blocker = coords[step]
+			}
+		}
+	}
+
+	return part1, blocker
+}
+
+func dijkstra(grid *Grid) (minDist int, cellsOnPath map[Coord]struct{}, found bool) {
+	n := len(grid.grid)
 
 	// Dijkstra from top left to bottom right
 	unvisited := make(map[Coord]struct{})
@@ -44,8 +68,10 @@ func Part1(lines []string, n int, drops int) int {
 	distances := make(map[Coord]int)
 	distances[start] = 0
 
+	parents := make(map[Coord]Coord) // keep track of one shortest path
+
 	node := start
-	for node != end {
+	for node != end && len(unvisited) > 0 {
 		currentDist := distances[node]
 		for dir := 0; dir < 4; dir++ {
 			next := node.GetCoordInDir(dir)
@@ -53,19 +79,39 @@ func Part1(lines []string, n int, drops int) int {
 				d := getDistance(next, &distances)
 				if currentDist+1 < d {
 					distances[next] = currentDist + 1
+					parents[next] = node
 				}
 			}
 		}
 
 		delete(unvisited, node)
-		node = getUnvisitedCoordSmallestDistance(&unvisited, &distances)
+		node, found = getUnvisitedCoordSmallestDistance(&unvisited, &distances)
+		if !found {
+			break
+		}
 		//fmt.Println(len(unvisited))
 	}
+	if node != end {
+		// did not find a path
+		return -1, nil, false
+	}
 
-	return getDistance(end, &distances)
+	// pack parents into a set of coordinates
+	node = end
+	cellsOnPath = make(map[Coord]struct{})
+	for node != start {
+		cellsOnPath[node] = struct{}{}
+		node = parents[node]
+	}
+
+	return getDistance(end, &distances), cellsOnPath, true
 }
 
-func getUnvisitedCoordSmallestDistance(unvisited *map[Coord]struct{}, distances *map[Coord]int) (ret Coord) {
+func Part2(lines []string, n int, drops int) (ret Coord) {
+	return
+}
+
+func getUnvisitedCoordSmallestDistance(unvisited *map[Coord]struct{}, distances *map[Coord]int) (ret Coord, found bool) {
 	minDist := math.MaxInt
 	for coord := range *unvisited {
 		d := getDistance(coord, distances)
@@ -75,9 +121,9 @@ func getUnvisitedCoordSmallestDistance(unvisited *map[Coord]struct{}, distances 
 		}
 	}
 	if minDist == math.MaxInt {
-		panic("node not found")
+		return ret, false
 	}
-	return ret
+	return ret, true
 }
 
 func getDistance(coord Coord, distances *map[Coord]int) int {
