@@ -1,23 +1,12 @@
 package day19
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 )
 
 func Part1(lines []string) int {
-	towels := strings.Split(lines[0], ", ")
-
-	sort.Slice(towels, func(i, j int) bool {
-		if len(towels[i]) != len(towels[j]) {
-			// Sort by length descending
-			return len(towels[i]) > len(towels[j])
-		}
-		// Sort alphabetically if lengths are the same
-		return towels[i] < towels[j]
-	})
-	fmt.Println(towels)
+	towels := getTowels(lines)
 
 	cache := make(map[string]bool)
 
@@ -30,6 +19,38 @@ func Part1(lines []string) int {
 		}
 	}
 
+	return count
+}
+
+func Part2(lines []string) int {
+	towels := getTowels(lines)
+
+	cache := make(map[string]int)
+
+	count := 0
+	for i := 2; i < len(lines); i++ {
+		arrangements := CountArrangements(towels, lines[i], &cache)
+		count += arrangements
+	}
+
+	return count
+}
+
+func CountArrangements(towels []string, target string, cache *map[string]int) int {
+	count := 0
+	for _, towel := range towels {
+		if towel == target {
+			count++
+		} else if strings.HasPrefix(target, towel) {
+			rest := target[len(towel):]
+			subCounts, exists := (*cache)[rest]
+			if !exists {
+				subCounts = CountArrangements(towels, rest, cache)
+				(*cache)[rest] = subCounts
+			}
+			count += subCounts
+		}
+	}
 	return count
 }
 
@@ -51,4 +72,19 @@ func canCompose(towels []string, target string, cache *map[string]bool) bool {
 		}
 	}
 	return false
+}
+
+func getTowels(lines []string) []string {
+	towels := strings.Split(lines[0], ", ")
+
+	sort.Slice(towels, func(i, j int) bool {
+		if len(towels[i]) != len(towels[j]) {
+			// Sort by length descending
+			return len(towels[i]) > len(towels[j])
+		}
+		// Sort alphabetically if lengths are the same
+		return towels[i] < towels[j]
+	})
+
+	return towels
 }
