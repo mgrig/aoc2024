@@ -17,6 +17,8 @@ func Part1(lines []string) int {
 
 	path := findSinglePath(grid, start, end)
 
+	// Keep a map from each Coord on the single path to how far along the path it is
+	// (aka its distance from the start along the path)
 	distFromStart := make(map[Coord]int, len(path))
 	for i, coord := range path {
 		distFromStart[coord] = i
@@ -36,8 +38,10 @@ func Part1(lines []string) int {
 			coord.GetCoordInDir(LEFT).GetCoordInDir(UP),
 			coord.GetCoordInDir(UP).GetCoordInDir(UP),
 		}
-		for _, cheatTo := range cheatCoords {
-			d, exists := distFromStart[cheatTo]
+		for _, endCheat := range cheatCoords {
+			d, exists := distFromStart[endCheat]
+			// a cheat is only "better" than the normal path if
+			// distFromStart(startCheat) + 2 < distFromStart(endCheat)
 			if exists && startToHere+2 < d {
 				saved := d - (startToHere + 2)
 				_, exists = savesMap[saved]
@@ -74,6 +78,9 @@ func Part2(lines []string, maxCheat int, minSave int) int {
 	for startToHere, coord := range path {
 
 		// find possible cheats from here
+		// DIFF TO PART 1: the set of possible end cheat Coords starting from here is
+		// a rhombus of size 20 around the start of the cheat.
+		// We crop the coords to the size of the matrix - probably not bringing much in terms of performance.
 		cheatCoords := make([]Coord, 0)
 		maxN := len(grid.grid) - 1
 		minR := common.IntMax(coord.r-maxCheat, 0)
@@ -93,12 +100,16 @@ func Part2(lines []string, maxCheat int, minSave int) int {
 
 		for _, cheatTo := range cheatCoords {
 			d, exists := distFromStart[cheatTo]
+			// DIFF TO PART 1: the cheatLen must be computed for each cheatEnd (it was always 2 in part 1)
 			cheatLen := common.IntAbs(cheatTo.r-coord.r) + common.IntAbs(cheatTo.c-coord.c)
 			if exists && startToHere+cheatLen < d {
 				saved := d - (startToHere + cheatLen)
+
+				// skip "trivial" cheats (smaller than given threshold, e.g. 50 or 100)
 				if saved < minSave {
 					continue
 				}
+
 				_, exists = savesMap[saved]
 				if !exists {
 					savesMap[saved] = 0
