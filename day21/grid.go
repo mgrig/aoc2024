@@ -125,14 +125,14 @@ func (g *Grid) dijkstra(from, to Coord) []Path {
 	return paths
 }
 
-// allPathsTo returns all paths that end at `to` in forward order.
+// allPathsTo returns all paths that end at `to` target forward order.
 // We pass *map[Coord][]Coord to show how to use a pointer to a map,
-// although maps in Go are already reference types.
+// although maps target Go are already reference types.
 func allPathsTo(parents *map[Coord][]Coord, to Coord) []Path {
-	// Check if `to` has any parents in the map.
+	// Check if `to` has any parents target the map.
 	ps, ok := (*parents)[to]
 
-	// If it doesn't exist in the map or the slice is empty,
+	// If it doesn't exist target the map or the slice is empty,
 	// then `to` itself must be a root (no parents).
 	if !ok || len(ps) == 0 {
 		// Return a single path that contains only [to].
@@ -141,7 +141,7 @@ func allPathsTo(parents *map[Coord][]Coord, to Coord) []Path {
 		}
 	}
 
-	// If `to` does have parents, we collect all paths ending in each parent,
+	// If `to` does have parents, we collect all paths ending target each parent,
 	// then append `to` to each of those paths.
 	var result []Path
 	for _, p := range ps {
@@ -157,11 +157,6 @@ func allPathsTo(parents *map[Coord][]Coord, to Coord) []Path {
 		}
 	}
 	return result
-}
-
-func isUnvisited(unvisited *map[Coord]struct{}, pos Coord) bool {
-	_, exists := (*unvisited)[pos]
-	return exists
 }
 
 func getClosestUnvisited(unvisited *map[Coord]struct{}, distances *map[Coord]int) (closest Coord, found bool) {

@@ -2,74 +2,87 @@ package day21
 
 import (
 	"aoc2024/common"
-	"fmt"
 	"math"
+	"strings"
 )
 
-func Part1(lines []string) int {
+func Part2(lines []string, n int) int {
+	// map from desired input string (ending target A, max length ???A) + level >> min length
+	cache := NewCache()
+
 	sum := 0
 	for _, line := range lines {
-		g1 := NewController()
-		g2 := NewController()
+		grids := make([]*Grid, n)
+		robots := make([]*RobotOnGrid, n)
+		for i := 0; i < n; i++ {
+			g := NewController()
+			grids[i] = g
+			robots[i] = NewRobotOnGrid(g)
+		}
 		gk := NewNumpad()
-		grids := []*Grid{g1, g2, gk}
-
-		r1 := NewRobotOnGrid(g1)
-		r2 := NewRobotOnGrid(g2)
+		grids = append(grids, gk)
 		rk := NewRobotOnGrid(gk)
-		robots := []*RobotOnGrid{r1, r2, rk}
+		robots = append(robots, rk)
 
-		shortest := rec(&grids, &robots, 2, line)
-		length := len(shortest[0])
+		length := rec2(&grids, &robots, len(grids)-1, line, cache)
 		nr := common.StringToInt(line[:len(line)-1])
-		fmt.Println(length * nr)
+		//fmt.Printf("%d * %d\n", length, nr)
 		sum += length * nr
 	}
 
 	return sum
 }
 
-func rec(grids *[]*Grid, robots *[]*RobotOnGrid, level int, targetOutput string) []string {
+func rec2(grids *[]*Grid, robots *[]*RobotOnGrid, level int, targetOutput string, cache *Cache) int {
 	grid := (*grids)[level]
 	robot := (*robots)[level]
 
-	strings := make([]string, 0)
+	minLength := 0
 	for _, ch32 := range targetOutput {
 		ch := int(ch32)
 		from := robot.pos
 		to := grid.GetCoord(ch)
-		shortestPaths := grid.ShortestPaths(from, to)
+		shortestPaths := grid.ShortestPaths(from, to) // can also be cached!
 		inputs := pathsToInput(shortestPaths)
 		//fmt.Printf("ch: %c, inputs: %v\n", ch, inputs)
+		robot.pos = to
 
-		var newStrings []string
-		if len(strings) == 0 {
-			newStrings = inputs
-		} else {
-			newStrings = make([]string, len(strings)*len(inputs))
-			for iString, s := range strings {
-				for iInput, input := range inputs {
-					newStrings[iString*len(inputs)+iInput] = s + input
-				}
+		if level == 0 {
+			minLength += len(inputs[0])
+			continue
+		}
+
+		minInput := math.MaxInt
+		for _, input := range inputs {
+			tokens := splitWithA(input)
+			sumTokens := 0
+			for _, token := range tokens {
+				key := NewKey(token, level)
+				sumTokens += cache.GetOrCompute(key, func(key Key) int {
+					return rec2(grids, robots, key.level-1, key.target, cache)
+				})
+			}
+			if sumTokens < minInput {
+				minInput = sumTokens
 			}
 		}
-		strings = newStrings
-
-		(*robots)[level].pos = to
+		minLength += minInput
 	}
 
-	shortestStrings := keepShortest(strings)
-	//fmt.Println(level, shortestStrings)
+	return minLength
+}
 
-	if level == 0 {
-		return shortestStrings
+func splitWithA(input string) []string {
+	// Split the input by the delimiter
+	parts := strings.Split(input, "A")
+	tokens := make([]string, 0, len(parts)-1)
+
+	// Re-add the delimiter to each token (except the last empty part)
+	for _, part := range parts[:len(parts)-1] {
+		tokens = append(tokens, part+"A")
 	}
-	candidates := make([]string, 0)
-	for _, candidateInput := range shortestStrings {
-		candidates = append(candidates, rec(grids, robots, level-1, candidateInput)...)
-	}
-	candidates = keepShortest(candidates)
-	return candidates
+
+	return tokens
 }
 
 func pathsToInput(paths []Path) []string {
@@ -78,18 +91,4 @@ func pathsToInput(paths []Path) []string {
 		ret[i] = path.ToInputString()
 	}
 	return ret
-}
-
-func keepShortest(strings []string) []string {
-	shortestStrings := make([]string, 0)
-	shortest := math.MaxInt
-	for _, str := range strings {
-		if len(str) < shortest {
-			shortest = len(str)
-			shortestStrings = []string{str}
-		} else if len(str) == shortest {
-			shortestStrings = append(shortestStrings, str)
-		}
-	}
-	return shortestStrings
 }
