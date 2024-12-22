@@ -14,6 +14,15 @@ func Part1(lines []string) int {
 	return sum
 }
 
+func compute(n int, times int) int {
+	for i := 0; i < times; i++ {
+		n = ((n << 6) ^ n) & 0xffffff
+		n = ((n >> 5) ^ n) & 0xffffff
+		n = ((n << 11) ^ n) & 0xffffff
+	}
+	return n
+}
+
 func Part2(lines []string) int {
 	combinedMatches := make(map[[4]int]int)
 	for _, line := range lines {
@@ -93,13 +102,4 @@ func findKeyWithLargestValue(m *map[[4]int]int) ([4]int, int) {
 	}
 
 	return maxKey, maxValue
-}
-
-func compute(n int, times int) int {
-	for i := 0; i < times; i++ {
-		n = ((n << 6) ^ n) & 0xffffff
-		n = ((n >> 5) ^ n) & 0xffffff
-		n = ((n << 11) ^ n) & 0xffffff
-	}
-	return n
 }
