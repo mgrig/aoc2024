@@ -13,6 +13,7 @@ func Part1(lines []string) int {
 	for _, line := range lines {
 		tokens := strings.Split(line, "-")
 		edges[NewEdge(tokens[0], tokens[1])] = struct{}{}
+		edges[NewEdge(tokens[1], tokens[0])] = struct{}{}
 		nodes[tokens[0]] = struct{}{}
 		nodes[tokens[1]] = struct{}{}
 	}
@@ -24,49 +25,43 @@ func Part1(lines []string) int {
 	}
 	sort.Strings(sortedNodes)
 
-	count := 0
-	for i := 0; i < len(sortedNodes); i++ {
-		iNode := sortedNodes[i]
-		if !strings.HasPrefix(iNode, "t") {
+	results := make(map[string]struct{}, 0)
+	for t := 0; t < len(sortedNodes); t++ {
+		tNode := sortedNodes[t]
+		if !strings.HasPrefix(tNode, "t") {
 			continue
 		}
-		for j := 0; j < len(sortedNodes); j++ {
-			if i == j {
+		for i := 0; i < len(sortedNodes); i++ {
+			if t == i {
 				continue
 			}
-			jNode := sortedNodes[j]
-			if !containsEdge(&edges, NewEdge(iNode, jNode)) {
-				continue
-			}
-			if strings.HasPrefix(jNode, "t") && j < i {
+			iNode := sortedNodes[i]
+			if !containsEdge(&edges, NewEdge(tNode, iNode)) {
 				continue
 			}
 
-			for k := j + 1; k < len(sortedNodes); k++ {
-				if k == i {
+			for j := i + 1; j < len(sortedNodes); j++ {
+				if j == t {
 					continue
 				}
-				kNode := sortedNodes[k]
-				if !containsEdge(&edges, NewEdge(iNode, kNode)) {
+				jNode := sortedNodes[j]
+				if !containsEdge(&edges, NewEdge(tNode, jNode)) {
 					continue
 				}
 
-				if containsEdge(&edges, NewEdge(jNode, kNode)) {
-					fmt.Printf("%s-%s-%s\n", iNode, jNode, kNode)
-					count++
+				if containsEdge(&edges, NewEdge(iNode, jNode)) {
+					three := []int{t, i, j}
+					sort.Ints(three)
+					results[fmt.Sprintf("%s-%s-%s", sortedNodes[three[0]], sortedNodes[three[1]], sortedNodes[three[2]])] = struct{}{}
 				}
 			}
 		}
 	}
 
-	return count
+	return len(results)
 }
 
 func containsEdge(edges *map[Edge]struct{}, edge Edge) bool {
 	_, exists := (*edges)[edge]
-	if exists {
-		return true
-	}
-	_, exists = (*edges)[NewEdge(edge.b, edge.a)]
 	return exists
 }
