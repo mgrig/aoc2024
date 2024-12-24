@@ -113,17 +113,16 @@ func Part2(lines []string) string {
 		unknowns[out] = gate
 	}
 
-	//outs := make([]string, 0)
-	//for i := 0; i <= 11; i++ {
-	//	outs = append(outs, fmt.Sprintf("z%2d", i))
-	//}
-	//outs = append(outs, "jmb")
-
 	//filtered := filterByOut(&unknowns, "z29", "z28")
-	////filtered := filterByOut(&unknowns, outs...)
 	//fmt.Println(filtered)
 	//toDotFile(knowns, gates, filtered)
 
+	// DEBUG CODE FOR MANUAL INSPECTION !
+	// Construct the actually correct graph for addition and compare with existing gates.
+	// Stop on the first wrong gate, print the graph around that area (using toDotFile above), and create manual fixes for the affected step.
+	// Recompute the wrong step and continue to the next error.
+	// The swapped pairs are found consistently within the same "step" (aka block with inputs x_i, y_i, carry_i-1 and outputs z_i, carry_i)
+	//
 	//carry := make([]string, 46)
 	//carry[0] = "rnv"
 	//for i := 1; i <= 45; i++ {
